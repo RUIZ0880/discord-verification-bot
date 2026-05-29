@@ -1,3 +1,0 @@
-/api/auth/callback  /.netlify/functions/auth/callback  200
-        ↑                ↑                           ↑
-    origen        destino                    código HTTP
