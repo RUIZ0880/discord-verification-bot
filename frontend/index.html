@@ -153,8 +153,8 @@
         <h1>Verificación</h1>
         <p class="subtitle">Verifica tu cuenta para acceder al servidor</p>
         
-        <!-- 🔴 URL con los 3 scopes: identify + email + guilds.join -->
-        <a href="https://discord.com/api/oauth2/authorize?client_id=1509656082468044963&redirect_uri=https://capable-seahorse-8aad92.netlify.app/auth/discord/callback&response_type=code&scope=identify%20email%20guilds.join" class="btn-discord">
+        <!-- Solo un botón - redirige a la función auth de Netlify -->
+        <a href="/.netlify/functions/auth" class="btn-discord">
             <i class="fab fa-discord"></i>
             Verificar con Discord
         </a>
@@ -169,12 +169,10 @@
     </div>
 
     <script>
-        // Mostrar loading cuando se haga clic en el botón
         document.querySelector('.btn-discord').addEventListener('click', function() {
             document.getElementById('loading').style.display = 'block';
         });
         
-        // Verificar si hay error en la URL
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('error') === 'access_denied') {
             document.getElementById('loading').style.display = 'none';
